@@ -283,7 +283,9 @@ Utils.prototype = {
     return hash.substring(0, 10);
   },
 
-  getRandomHash: () => web3.utils.sha3(`${Date.now()}`),
+  getRandomHash: () => web3.utils.sha3(`${process.hrtime()}`),
+
+  hash: text => web3.utils.sha3(text),
 
   getRandomNumber: max => Math.floor(Math.random() * Math.floor(max)),
 

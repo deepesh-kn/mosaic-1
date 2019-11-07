@@ -57,7 +57,6 @@ contract KernelBase {
         address[] memory _updatedValidators,
         uint256[] memory _updatedReputation,
         uint256 _gasTarget
-
     )
         internal
         pure

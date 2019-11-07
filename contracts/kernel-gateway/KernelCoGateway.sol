@@ -16,13 +16,13 @@ pragma solidity >=0.5.0 <0.6.0;
 
 import "../proxies/MasterCopyNonUpgradable.sol";
 import "../message-bus/MessageInbox.sol";
-import "../consensus/ConsensusModule1.sol";
+import "../consensus/ConsensusModule.sol";
 import "./KernelBase.sol";
 
 contract KernelCoGateway is
     MasterCopyNonUpgradable, // Always keep this always at location 0
     MessageInbox,
-    ConsensusModule1, // TODO: replace this with ConsensusModule
+    ConsensusModule,
     KernelBase
 {
     /* Events */

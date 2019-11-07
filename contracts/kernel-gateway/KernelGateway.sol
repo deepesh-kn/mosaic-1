@@ -16,13 +16,13 @@ pragma solidity >=0.5.0 <0.6.0;
 
 import "../message-bus/MessageOutbox.sol";
 import "../proxies/MasterCopyNonUpgradable.sol";
-import "../consensus/ConsensusModule1.sol";
+import "../consensus/ConsensusModule.sol";
 import "./KernelBase.sol";
 
 contract KernelGateway is
     MasterCopyNonUpgradable, // Always keep this always at location 0
     MessageOutbox,
-    ConsensusModule1, // TODO: replace this with ConsensusModule
+    ConsensusModule,
     KernelBase
 {
     /* Events */

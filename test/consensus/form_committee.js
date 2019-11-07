@@ -142,6 +142,13 @@ contract('Consensus::formCommittee', (accounts) => {
   });
 
   contract('Positive Tests', () => {
+    before(async () => {
+      // Form committee code has check for 256 block.
+      // This means that the tests will fail when the block number is less
+      // than 256. So advancing the blocks.
+      await Utils.advanceBlocks(300);
+    });
+
     let committeeFormationBlockHeight;
     beforeEach(async () => {
       const initialBlockNumber = await Utils.getBlockNumber();

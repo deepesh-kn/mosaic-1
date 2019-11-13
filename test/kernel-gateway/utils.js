@@ -19,6 +19,14 @@ const Utils = require('../test_lib/utils.js');
 const KERNEL_TYPEHASH_STRING = 'Kernel(uint256 height,bytes32 parent,address[] updatedValidators,uint256[] updatedReputation,uint256 gasTarget)';
 const KERNEL_TYPEHASH = Utils.hash(KERNEL_TYPEHASH_STRING);
 
+async function setupKernelGateway(kernelGateway, setupParams) {
+  await kernelGateway.setup(
+    setupParams.chainId,
+    setupParams.kernelCoGateway,
+    setupParams.txOptions,
+  );
+}
 module.exports = {
   KERNEL_TYPEHASH,
+  setupKernelGateway,
 };

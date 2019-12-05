@@ -13,6 +13,8 @@ contract CoreStatusEnum {
         corrupted,
         // core accepts initial set of validators
         creation,
+        // initial validators are set.
+        genesis,
         // core has an open kernel without precommitment to a proposal
         opened,
         // core has precommitted to a proposal for the open kernel

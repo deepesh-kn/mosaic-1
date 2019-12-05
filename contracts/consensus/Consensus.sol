@@ -64,6 +64,13 @@ contract Consensus is MasterCopyNonUpgradable, CoreStatusEnum, ConsensusI {
         )
     );
 
+    /** The callprefix of the Anchor::setup function. */
+    bytes4 public constant ANCHOR_SETUP_CALLPREFIX = bytes4(
+        keccak256(
+            "setup(address,uint256)"
+        )
+    );
+
 
     /* Structs */
 
@@ -595,48 +602,47 @@ contract Consensus is MasterCopyNonUpgradable, CoreStatusEnum, ConsensusI {
     }
 
     /**
-     * @notice Creates a new meta chain given an achor.
-     *         This can be called only by axiom.
+     * @notice Creates a new meta chain. This can be called only by axiom.
      *
      * @dev Function requires:
      *          - msg.sender should be axiom contract.
      *          - core is not assigned to metachain.
      *
-     * @param _anchor anchor of the new meta-chain.
+     * @param _maxStateRoots The max number of state roots to store in the
+     *                       circular buffer.
      * @param _epochLength Epoch length for new meta-chain.
-     * @param _rootBlockHash root block hash.
-     * @param _rootBlockHeight root block height.
      */
     function newMetaChain(
-        address _anchor,
-        uint256 _epochLength,
-        bytes32 _rootBlockHash,
-        uint256 _rootBlockHeight
+        uint256 _maxStateRoots,
+        uint256 _epochLength
     )
         external
         onlyAxiom
+        returns (bytes20 chainId_)
     {
-        bytes20 chainId = bytes20(_anchor);
+        AnchorI = newAnchor(_maxStateRoots);
+
+        chainId_ = bytes20(_anchor);
 
         require(
-            assignments[chainId] == address(0),
+            assignments[chainId_] == address(0),
             "A core is already assigned to this metachain."
         );
 
         address core = newCore(
-            chainId,
+            chainId_,
             _epochLength,
             uint256(0), // metablock height
             bytes32(0), // parent hash
             gasTargetDelta, // gas target
             uint256(0), // dynasty
             uint256(0), // accumulated gas
-            _rootBlockHash,
-            _rootBlockHeight
+            bytes32(0), // root block hash
+            uint256(0) // root block number
         );
 
-        assignments[chainId] = core;
-        anchors[chainId] = _anchor;
+        assignments[chainId_] = core;
+        anchors[chainId_] = _anchor;
     }
 
     /** Get minimum validator and join limit count. */
@@ -866,6 +872,31 @@ contract Consensus is MasterCopyNonUpgradable, CoreStatusEnum, ConsensusI {
         );
 
         committee_ = CommitteeI(committeeAddress);
+    }
+
+    /**
+     * @notice Deploy a new anchor contract.
+     * @param _maxStateRoots The max number of state roots to store in the
+     *                       circular buffer.
+     * returns Contract address of new deployed anchor contract.
+     */
+    function newAnchor(
+        uint256 _maxStateRoots
+    )
+        private
+        returns (AnchorI anchor_)
+    {
+        bytes memory anchorSetupData = abi.encodeWithSelector(
+            ANCHOR_SETUP_CALLPREFIX,
+            address(this),
+            _maxStateRoots
+        );
+
+        address anchorAddress = axiom.newAnchor(
+            anchorSetupData
+        );
+
+        anchor_ = AnchorI(anchorAddress);
     }
 
     /**

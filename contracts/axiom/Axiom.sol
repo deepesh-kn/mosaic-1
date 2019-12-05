@@ -78,6 +78,9 @@ contract Axiom is AxiomI, ProxyFactory, ConsensusModule {
     /** Reputation master copy contract address */
     address public reputationMasterCopy;
 
+    /** Anchor master copy contract address */
+    address public anchorMasterCopy;
+
     /** Reputation contract address */
     ReputationI public reputation;
 
@@ -92,13 +95,15 @@ contract Axiom is AxiomI, ProxyFactory, ConsensusModule {
      * @param _coreMasterCopy Core master copy contract address.
      * @param _committeeMasterCopy Committee master copy contract address.
      * @param _reputationMasterCopy Reputation master copy contract address.
+     * @param _anchorMasterCopy Anchor master copy contract address.
      */
     constructor(
         address _techGov,
         address _consensusMasterCopy,
         address _coreMasterCopy,
         address _committeeMasterCopy,
-        address _reputationMasterCopy
+        address _reputationMasterCopy,
+        address _anchorMasterCopy
     )
         public
     {
@@ -127,11 +132,17 @@ contract Axiom is AxiomI, ProxyFactory, ConsensusModule {
             "Reputation master copy address is 0."
         );
 
+        require(
+            _anchorMasterCopy != address(0),
+            "Anchor master copy address is 0."
+        );
+
         techGov = _techGov;
         consensusMasterCopy = _consensusMasterCopy;
         coreMasterCopy = _coreMasterCopy;
         committeeMasterCopy = _committeeMasterCopy;
         reputationMasterCopy = _reputationMasterCopy;
+        anchorMasterCopy = _anchorMasterCopy;
     }
 
 
@@ -253,6 +264,22 @@ contract Axiom is AxiomI, ProxyFactory, ConsensusModule {
     }
 
     /**
+     * @notice Deploy Anchor proxy contract. This can be called only by consensus
+     *         contract.
+     * @param _data Setup function call data.
+     * @return Deployed contract address.
+     */
+    function newAnchor(
+        bytes calldata _data
+    )
+        external
+        onlyConsensus
+        returns (address deployedAddress_)
+    {
+        return deployProxyContract(anchorMasterCopy, _data);
+    }
+
+    /**
      * @notice Setup a new meta chain. Only technical governance address can
      *         call this function.
      * @param _maxStateRoots The max number of state roots to store in the
@@ -260,35 +287,19 @@ contract Axiom is AxiomI, ProxyFactory, ConsensusModule {
      * @param _rootRlpBlockHeader RLP encoded block header of root block.
      */
     function newMetaChain(
-        uint256 _maxStateRoots,
-        bytes calldata _rootRlpBlockHeader
+        uint256 _maxStateRoots
     )
         external
         onlyTechGov
+        returns (bytes20 chainId_)
     {
         require(
             address(consensus) != address(0),
             "Consensus must be setup."
         );
 
-        bytes32 source = keccak256(_rootRlpBlockHeader);
-
-        Block.Header memory blockHeader = Block.decodeHeader(_rootRlpBlockHeader);
-
-        // Task: When new Anchor is implemented, use proxy pattern for deployment.
-        Anchor anchor = new Anchor(
-            blockHeader.height,
-            blockHeader.stateRoot,
-            _maxStateRoots,
-            consensus
-        );
-
-        consensus.newMetaChain(
-            address(anchor),
-            EPOCH_LENGTH,
-            source,
-            blockHeader.height
-        );
+        chainId_ = consensus.newMetachain(_maxStateRoots, EPOCH_LENGTH);
+        // TODO: emit events.
     }
 
 
